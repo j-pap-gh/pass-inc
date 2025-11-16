@@ -1,43 +1,62 @@
-# 💵 Passive Income Platform — Full-Stack SaaS  
-AI-powered passive-income explorer with premium subscriptions, Stripe checkout, action plans, and an admin dashboard.
+# pass-inc
 
-<div align="center">
+Passive income tracker SaaS-style backend with recommendations.
 
-![license](https://img.shields.io/badge/license-MIT-green)  
-![status](https://img.shields.io/badge/status-production--ready-blue)  
-![build](https://img.shields.io/badge/build-passing-brightgreen)  
-![backend](https://img.shields.io/badge/backend-FastAPI-009688)  
-![frontend](https://img.shields.io/badge/frontend-React%20%2B%20Vite-61DAFB)  
-![stripe](https://img.shields.io/badge/payments-Stripe-626CD9)
+This is the backend service for tracking passive income streams (dividends, rentals, royalties,
+etc.) and generating basic recommendations. Future plans include AI-powered insights and
+paywalled advanced strategies.
 
-</div>
+## Requirements
 
----
+- Python 3.10+
+- pip
 
-## 🚀 Tech Stack
+## Setup
 
-### **Frontend**
-- React + Vite  
-- TailwindCSS  
-- Zustand global store  
-- React Query for caching  
-- AI chat widget  
-- Premium gating + Stripe client flow  
+```bash
+git clone https://github.com/j-pap-gh/pass-inc.git
+cd pass-inc
 
-### **Backend**
-- FastAPI REST API  
-- SQLAlchemy ORM  
-- Alembic migrations  
-- JWT authentication  
-- Stripe subscription flow  
-- Dockerized deployment  
+# (optional) create and activate a virtual environment
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
 
-### **Deployment**
-- Vercel (Frontend)  
-- Render (Backend)  
-- Netlify alternative  
+# install dependencies
+pip install -r requirements.txt
+```
 
----
+## Running the API
 
-## 📁 Repository Layout
+```bash
+uvicorn src.pass_inc.main:app --reload
+```
 
+By default FastAPI will serve at [http://localhost:8000](http://localhost:8000).
+
+Open the interactive docs:
+
+- Swagger UI: [http://localhost:8000/docs](http://localhost:8000/docs)
+- ReDoc: [http://localhost:8000/redoc](http://localhost:8000/redoc)
+
+## Key endpoints
+
+- `GET /health` – basic health check
+- `GET /income/` – list income streams
+- `POST /income/` – create a new income stream
+- `DELETE /income/{stream_id}` – delete a stream
+- `GET /income/summary` – monthly/yearly totals
+- `GET /recommendations/` – baseline recommendations
+- `GET /recommendations/paywalled-preview` – example of paywalled recommendation preview
+
+## Running tests
+
+```bash
+pytest
+```
+
+## Next steps / roadmap
+
+- Persist data in a real database (e.g. Postgres with SQLAlchemy).
+- User accounts, authentication, and subscription tiers.
+- AI-based recommendation engine gated behind a paid plan.
+- Frontend (web dashboard) that consumes this API.
