@@ -60,3 +60,11 @@ pytest
 - User accounts, authentication, and subscription tiers.
 - AI-based recommendation engine gated behind a paid plan.
 - Frontend (web dashboard) that consumes this API.
+
+## Initialize the database
+
+```bash
+python -m scripts.init_db
+```
+
+This will create the SQLite database file `pass_inc.db` in the project root.
