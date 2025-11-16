@@ -1,6 +1,6 @@
 from datetime import date
 from enum import Enum
-from typing import List, Optional
+from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -14,21 +14,7 @@ class IncomeType(str, Enum):
     OTHER = "other"
 
 
-class IncomeStream(BaseModel):
-    id: int = Field(..., description="Unique ID of the income stream")
-    name: str = Field(..., description="Name of the passive income stream")
-    income_type: IncomeType
-    amount_per_period: float = Field(..., ge=0.0, description="Amount per period")
-    period: str = Field(
-        "monthly",
-        description="Period for this income: daily, weekly, monthly, yearly",
-    )
-    currency: str = Field("USD", description="Currency code")
-    start_date: Optional[date] = None
-    notes: Optional[str] = None
-
-
-class IncomeStreamCreate(BaseModel):
+class IncomeStreamBase(BaseModel):
     name: str
     income_type: IncomeType
     amount_per_period: float = Field(..., ge=0.0)
@@ -36,6 +22,17 @@ class IncomeStreamCreate(BaseModel):
     currency: str = "USD"
     start_date: Optional[date] = None
     notes: Optional[str] = None
+
+
+class IncomeStreamCreate(IncomeStreamBase):
+    pass
+
+
+class IncomeStream(IncomeStreamBase):
+    id: int = Field(..., description="Unique ID of the income stream")
+
+    class Config:
+        from_attributes = True  # allows .from_orm / from SQLAlchemy objects
 
 
 class IncomeSummary(BaseModel):
@@ -47,7 +44,7 @@ class IncomeSummary(BaseModel):
 class Recommendation(BaseModel):
     title: str
     description: str
-    difficulty: str  # e.g. "beginner", "intermediate", "advanced"
+    difficulty: str
     estimated_monthly: float
-    category: str  # e.g. "digital products", "investing", etc.
+    category: str
     paywalled: bool = False
