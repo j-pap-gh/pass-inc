@@ -1,12 +1,13 @@
 [project]
 name = "pass-inc"
 version = "0.1.0"
-description = "Python project for pass-inc"
+description = "Passive income tracker SaaS backend with basic recommendations."
 readme = "README.md"
 requires-python = ">=3.10"
 authors = [
   { name = "j-pap-gh" }
 ]
+dependencies = []
 
 [tool.pytest.ini_options]
 pythonpath = [
