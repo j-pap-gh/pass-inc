@@ -3,20 +3,22 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from ..auth import get_current_user
 from ..db import get_db
 from ..models import IncomeStream, IncomeStreamCreate, IncomeSummary
 from ..repository import IncomeRepository
 from ..services import summarize_income
+from ..user_models import UserRead
 
 router = APIRouter(prefix="/income", tags=["income"])
 
 
-DUMMY_USER_ID = 1  # TODO: replace with real current_user.id
-
-
 @router.get("/", response_model=List[IncomeStream])
-def list_income_streams(db: Session = Depends(get_db)) -> List[IncomeStream]:
-    repo = IncomeRepository(db, user_id=DUMMY_USER_ID)
+def list_income_streams(
+    db: Session = Depends(get_db),
+    current_user: UserRead = Depends(get_current_user),
+) -> List[IncomeStream]:
+    repo = IncomeRepository(db, user_id=current_user.id)
     return repo.list_streams()
 
 
@@ -24,8 +26,9 @@ def list_income_streams(db: Session = Depends(get_db)) -> List[IncomeStream]:
 def create_income_stream(
     payload: IncomeStreamCreate,
     db: Session = Depends(get_db),
+    current_user: UserRead = Depends(get_current_user),
 ) -> IncomeStream:
-    repo = IncomeRepository(db, user_id=DUMMY_USER_ID)
+    repo = IncomeRepository(db, user_id=current_user.id)
     return repo.add_stream(payload)
 
 
@@ -33,8 +36,9 @@ def create_income_stream(
 def delete_income_stream(
     stream_id: int,
     db: Session = Depends(get_db),
+    current_user: UserRead = Depends(get_current_user),
 ) -> None:
-    repo = IncomeRepository(db, user_id=DUMMY_USER_ID)
+    repo = IncomeRepository(db, user_id=current_user.id)
     try:
         repo.delete_stream(stream_id)
     except KeyError:
@@ -42,7 +46,10 @@ def delete_income_stream(
 
 
 @router.get("/summary", response_model=IncomeSummary)
-def get_income_summary(db: Session = Depends(get_db)) -> IncomeSummary:
-    repo = IncomeRepository(db, user_id=DUMMY_USER_ID)
+def get_income_summary(
+    db: Session = Depends(get_db),
+    current_user: UserRead = Depends(get_current_user),
+) -> IncomeSummary:
+    repo = IncomeRepository(db, user_id=current_user.id)
     streams = repo.list_streams()
     return summarize_income(streams)
