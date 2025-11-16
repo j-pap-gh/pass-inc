@@ -11,9 +11,12 @@ from ..services import summarize_income
 router = APIRouter(prefix="/income", tags=["income"])
 
 
+DUMMY_USER_ID = 1  # TODO: replace with real current_user.id
+
+
 @router.get("/", response_model=List[IncomeStream])
 def list_income_streams(db: Session = Depends(get_db)) -> List[IncomeStream]:
-    repo = IncomeRepository(db)
+    repo = IncomeRepository(db, user_id=DUMMY_USER_ID)
     return repo.list_streams()
 
 
@@ -22,7 +25,7 @@ def create_income_stream(
     payload: IncomeStreamCreate,
     db: Session = Depends(get_db),
 ) -> IncomeStream:
-    repo = IncomeRepository(db)
+    repo = IncomeRepository(db, user_id=DUMMY_USER_ID)
     return repo.add_stream(payload)
 
 
@@ -31,7 +34,7 @@ def delete_income_stream(
     stream_id: int,
     db: Session = Depends(get_db),
 ) -> None:
-    repo = IncomeRepository(db)
+    repo = IncomeRepository(db, user_id=DUMMY_USER_ID)
     try:
         repo.delete_stream(stream_id)
     except KeyError:
@@ -40,6 +43,6 @@ def delete_income_stream(
 
 @router.get("/summary", response_model=IncomeSummary)
 def get_income_summary(db: Session = Depends(get_db)) -> IncomeSummary:
-    repo = IncomeRepository(db)
+    repo = IncomeRepository(db, user_id=DUMMY_USER_ID)
     streams = repo.list_streams()
     return summarize_income(streams)
