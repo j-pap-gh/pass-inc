@@ -1,4 +1,5 @@
 from datetime import datetime
+from enum import Enum as PyEnum  # <-- add this
 
 from sqlalchemy import Boolean, Column, DateTime, Enum, Integer, String
 from sqlalchemy.orm import relationship
@@ -6,10 +7,9 @@ from sqlalchemy.orm import relationship
 from .db import Base
 
 
-class PlanType(str, Enum):
+class PlanType(str, PyEnum):  # <-- use PyEnum here
     FREE = "free"
     PRO = "pro"
-
 
 class UserDB(Base):
     __tablename__ = "users"
