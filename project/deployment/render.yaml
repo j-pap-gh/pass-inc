@@ -1,0 +1,25 @@
+
+services:
+  - type: web
+    name: passive-income-backend
+    env: python
+    region: frankfurt
+    plan: starter
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "uvicorn app.main:app --host 0.0.0.0 --port 8000"
+    autoDeploy: true
+    envVars:
+      - key: ENV
+        value: production
+      - key: DATABASE_URL
+        value: sqlite:///./db.sqlite3
+      - key: JWT_SECRET
+        sync: false
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: PREMIUM_PRICE_ID
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false

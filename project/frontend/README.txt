@@ -1,0 +1,1 @@
+Frontend folder. Full content generation truncated due to environment limits.
