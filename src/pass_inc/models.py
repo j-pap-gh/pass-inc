@@ -30,9 +30,10 @@ class IncomeStreamCreate(IncomeStreamBase):
 
 class IncomeStream(IncomeStreamBase):
     id: int = Field(..., description="Unique ID of the income stream")
+    user_id: int
 
     class Config:
-        from_attributes = True  # allows .from_orm / from SQLAlchemy objects
+        from_attributes = True
 
 
 class IncomeSummary(BaseModel):
