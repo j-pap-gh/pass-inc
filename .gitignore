@@ -1,32 +1,26 @@
-# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
 
-# Distribution / packaging
 build/
 dist/
 *.egg-info/
 .eggs/
 *.egg
 
-# Virtual environments
 .venv/
 venv/
 env/
 .env/
 
-# IDE/editor
 .vscode/
 .idea/
 *.swp
 *.swo
 
-# OS files
 .DS_Store
 Thumbs.db
 
-# Test / coverage
 htmlcov/
 .tox/
 .nox/
@@ -35,5 +29,4 @@ htmlcov/
 .cache/
 .pytest_cache/
 
-# Jupyter
 .ipynb_checkpoints/
