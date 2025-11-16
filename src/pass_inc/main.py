@@ -1,7 +1,21 @@
-def run():
-    """Main entry point for the pass-inc application."""
-    print("pass-inc is running! Implement your logic in src/pass_inc/main.py")
+from fastapi import FastAPI
+
+from .api.routes_income import router as income_router
+from .api.routes_recommendations import router as recommendations_router
+from .config import settings
 
 
-if __name__ == "__main__":
-    run()
+def create_app() -> FastAPI:
+    app = FastAPI(title=settings.app_name)
+
+    @app.get("/health", tags=["health"])
+    def health():
+        return {"status": "ok", "environment": settings.environment}
+
+    app.include_router(income_router)
+    app.include_router(recommendations_router)
+
+    return app
+
+
+app = create_app()
