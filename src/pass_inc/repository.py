@@ -1,30 +1,39 @@
-from typing import Dict, List
+from typing import List
 
+from sqlalchemy.orm import Session
+
+from .db_models import IncomeStreamDB
 from .models import IncomeStream, IncomeStreamCreate
 
 
 class IncomeRepository:
-    """Simple in-memory repository. Replace with real DB later."""
+    """Database-backed repository using SQLAlchemy."""
 
-    def __init__(self) -> None:
-        self._streams: Dict[int, IncomeStream] = {}
-        self._next_id = 1
+    def __init__(self, db: Session) -> None:
+        self.db = db
 
     def list_streams(self) -> List[IncomeStream]:
-        return list(self._streams.values())
+        records = self.db.query(IncomeStreamDB).all()
+        return [IncomeStream.model_validate(r) for r in records]
 
     def add_stream(self, payload: IncomeStreamCreate) -> IncomeStream:
-        stream = IncomeStream(id=self._next_id, **payload.dict())
-        self._streams[self._next_id] = stream
-        self._next_id += 1
-        return stream
+        record = IncomeStreamDB(
+            name=payload.name,
+            income_type=payload.income_type,
+            amount_per_period=payload.amount_per_period,
+            period=payload.period,
+            currency=payload.currency,
+            start_date=payload.start_date,
+            notes=payload.notes,
+        )
+        self.db.add(record)
+        self.db.commit()
+        self.db.refresh(record)
+        return IncomeStream.model_validate(record)
 
     def delete_stream(self, stream_id: int) -> None:
-        if stream_id in self._streams:
-            del self._streams[stream_id]
-        else:
+        record = self.db.query(IncomeStreamDB).filter(IncomeStreamDB.id == stream_id).first()
+        if not record:
             raise KeyError(f"Income stream {stream_id} not found")
-
-
-# Singleton for now; for real apps use dependency injection
-income_repo = IncomeRepository()
+        self.db.delete(record)
+        self.db.commit()
