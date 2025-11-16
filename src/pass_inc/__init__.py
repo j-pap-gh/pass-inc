@@ -1,8 +1,7 @@
 """
 pass_inc package.
 
-This is the main package for the pass-inc project.
-You can expose top-level functions/classes here.
+Backend for a passive income tracker SaaS application.
 """
 
 __version__ = "0.1.0"
