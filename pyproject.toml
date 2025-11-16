@@ -1,0 +1,14 @@
+[project]
+name = "pass-inc"
+version = "0.1.0"
+description = "Python project for pass-inc"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+  { name = "j-pap-gh" }
+]
+
+[tool.pytest.ini_options]
+pythonpath = [
+  "src"
+]
