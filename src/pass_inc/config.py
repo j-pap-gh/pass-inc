@@ -8,9 +8,8 @@ class Settings(BaseSettings):
     environment: str = "development"
     debug: bool = True
 
-    # Placeholder for future configuration
-    # database_url: str = "sqlite:///./pass_inc.db"
-    # openai_api_key: str | None = None
+    # SQLite database in the repo directory by default
+    database_url: str = "sqlite:///./pass_inc.db"
 
     class Config:
         env_file = ".env"
