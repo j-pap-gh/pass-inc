@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 from typing import Optional
 
 from fastapi import Depends, HTTPException, status
@@ -12,16 +12,16 @@ from .db import get_db
 from .db_user_models import UserDB
 from .user_models import TokenData, UserRead
 
-# Password hashing
+# Password hashing context
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-# OAuth2 scheme (we expect a Bearer token)
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
+# OAuth2 scheme for FastAPI
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
-# JWT settings – you can move these into Settings if you like
-SECRET_KEY = getattr(settings, "secret_key", "CHANGE_ME_IN_PRODUCTION")
+# JWT settings
+SECRET_KEY = settings.secret_key
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 1 day
+ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -29,7 +29,22 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 
 def get_password_hash(password: str) -> str:
+    # bcrypt has a 72‑byte limit; passlib handles truncation safely,
+    # but you can enforce max length in the Pydantic model as well.
     return pwd_context.hash(password)
+
+
+def get_user_by_id(db: Session, user_id: int) -> Optional[UserDB]:
+    return db.query(UserDB).filter(UserDB.id == user_id).first()
+
+
+def authenticate_user(db: Session, email: str, password: str) -> Optional[UserDB]:
+    user = db.query(UserDB).filter(UserDB.email == email).first()
+    if not user:
+        return None
+    if not verify_password(password, user.hashed_password):
+        return None
+    return user
 
 
 def create_access_token(
@@ -37,15 +52,13 @@ def create_access_token(
     expires_delta: Optional[timedelta] = None,
 ) -> str:
     to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + (
+    expire = datetime.utcnow() + (
         expires_delta or timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     )
     to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
-
-
-def get_user_by_id(db: Session, user_id: int) -> Optional[UserDB]:
-    return db.query(UserDB).filter(UserDB.id == user_id).first()
+    # data["sub"] is expected to be a string (user id)
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
 
 
 async def get_current_user(
@@ -60,15 +73,22 @@ async def get_current_user(
 
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id: int | None = payload.get("sub")
+        user_id: Optional[int] = payload.get("sub")
         if user_id is None:
             raise credentials_exception
         token_data = TokenData(user_id=user_id)
     except JWTError:
         raise credentials_exception
 
-    user = get_user_by_id(db, token_data.user_id) if token_data.user_id else None
-    if user is None or not user.is_active:
+    user = get_user_by_id(db, token_data.user_id)
+    if user is None:
         raise credentials_exception
 
     return UserRead.model_validate(user)
+
+
+async def get_current_active_user(
+    current_user: UserRead = Depends(get_current_user),
+) -> UserRead:
+    # If you later add an "is_active" flag or plan checks to UserRead, enforce them here.
+    return current_user
