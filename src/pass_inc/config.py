@@ -11,6 +11,11 @@ class Settings(BaseSettings):
     # SQLite database in the repo directory by default
     database_url: str = "sqlite:///./pass_inc.db"
 
+    # JWT / auth configuration
+    secret_key: str = "change-me-in-production"  # used by auth.py
+    algorithm: str = "HS256"
+    access_token_expire_minutes: int = 60
+
     class Config:
         env_file = ".env"
 
