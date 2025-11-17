@@ -4,24 +4,16 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
-from ..auth import (
-    ACCESS_TOKEN_EXPIRE_MINUTES,
-    create_access_token,
-    get_password_hash,
-    verify_password,
-)
+from ..auth import authenticate_user, create_access_token, get_password_hash
 from ..db import get_db
-from ..db_user_models import UserDB
-from ..user_models import Token, UserCreate, UserRead
+from ..db_user_models import UserDB, PlanType
+from ..user_models import UserCreate, UserRead
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
-@router.post("/signup", response_model=UserRead, status_code=201)
-def signup(
-    payload: UserCreate,
-    db: Session = Depends(get_db),
-) -> UserRead:
+@router.post("/signup", response_model=UserRead, status_code=status.HTTP_201_CREATED)
+def signup(payload: UserCreate, db: Session = Depends(get_db)) -> UserRead:
     # Check if user already exists
     existing = db.query(UserDB).filter(UserDB.email == payload.email).first()
     if existing:
@@ -30,33 +22,37 @@ def signup(
             detail="Email already registered",
         )
 
-    user = UserDB(
+    # Create new user with default FREE plan
+    new_user = UserDB(
         email=payload.email,
         hashed_password=get_password_hash(payload.password),
-        # plan defaults in model (FREE)
+        plan=PlanType.FREE,
+        is_active=True,
     )
-    db.add(user)
+    db.add(new_user)
     db.commit()
-    db.refresh(user)
-    return UserRead.model_validate(user)
+    db.refresh(new_user)
+
+    return UserRead.model_validate(new_user)
 
 
-@router.post("/login", response_model=Token)
+@router.post("/login")
 def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db),
-) -> Token:
-    user = db.query(UserDB).filter(UserDB.email == form_data.username).first()
-    if not user or not verify_password(form_data.password, user.hashed_password):
+):
+    user = authenticate_user(db, form_data.username, form_data.password)
+    if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
+            detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token_expires = timedelta(minutes=60)
+    # IMPORTANT: store user id as sub, as string
     access_token = create_access_token(
-        data={"sub": user.id},
+        data={"sub": str(user.id)},
         expires_delta=access_token_expires,
     )
-    return Token(access_token=access_token)
+    return {"access_token": access_token, "token_type": "bearer"}
