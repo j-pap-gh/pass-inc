@@ -37,6 +37,27 @@ class IncomeRepository:
         self.db.refresh(record)
         return IncomeStream.model_validate(record)
 
+def update_stream(self, stream_id: int, payload: IncomeStreamCreate) -> IncomeStream:
+        record = (
+            self.db.query(IncomeStreamDB)
+            .filter(
+                IncomeStreamDB.id == stream_id,
+                IncomeStreamDB.user_id == self.user_id,
+            )
+            .first()
+        )
+        if not record:
+            raise KeyError(f"Income stream {stream_id} not found")
+        record.name = payload.name
+        record.income_type = payload.income_type
+        record.amount_per_period = payload.amount_per_period
+        record.period = payload.period
+        record.currency = payload.currency
+        record.start_date = payload.start_date
+        record.notes = payload.notes
+        self.db.commit()
+        self.db.refresh(record)
+        return IncomeStream.model_validate(record)
     def delete_stream(self, stream_id: int) -> None:
         record = (
             self.db.query(IncomeStreamDB)
