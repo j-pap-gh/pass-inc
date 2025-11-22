@@ -1,9 +1,7 @@
-from pydantic_settings import BaseSettings
-
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     """Application configuration."""
-
     app_name: str = "Passive Income Tracker"
     environment: str = "development"
     debug: bool = True
@@ -12,12 +10,11 @@ class Settings(BaseSettings):
     database_url: str = "sqlite:///./pass_inc.db"
 
     # JWT / auth configuration
-    secret_key: str = "change-me-in-production"  # used by auth.py
+    secret_key: str  # required, loaded from environment
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 60
 
-    class Config:
-        env_file = ".env"
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
 
 settings = Settings()
